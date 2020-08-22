@@ -24,10 +24,11 @@ This file must contain a udev rule that matches the device insertion and removal
 It will typically look something like:
 
 ```
-SUBSYSTEM=="usb",DEVPATH=="/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.2",RUN+="/opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01"
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="xxxx", ATTR{idProduct}=="xxxx"RUN+="/opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01"
 ```
 
-Here we attach any USB device plugged into the USB port identified by `/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.2` to the VM `testvm-01`.
+`xxxx`s should be replaced by USB device's vendor ID and product ID.
+Here we attach any USB device plugged into the USB port identified by Vendor ID and Product ID to the VM `testvm-01`.
 
 *Note*:
 The script has one mandatory parameter, which contains the libvirt domain that the script should attach the device to.
@@ -42,6 +43,9 @@ $ udevadm monitor --property --udev --subsystem-match=usb/usb_device
 If you want to match a specific USB port, you will probably want to use the `DEVPATH` attribute.
 To match a specific device instead, use the `ID_VENDOR_ID` and `ID_MODEL_ID` attributes.
 
+Since this script trigger `virsh attach-device` both on udev add and udev bind event, be sure to add ACTION attributes to udev rules.
+If you have trouble with ACTION=="add" trigger while usb device is not completely initialized, use ACTION=="bind" trigger instead.
+
 *Note*:
 It may be tempting to use `ATTR{busnum}` and `ATTR{devpath}` to match the USB bus and port number.
 However, those attributes are only available when the device is added, and not when the device is removed.
@@ -53,7 +57,6 @@ E.g.:
 ```
 $ sudo service udev reload
 ```
-
 
 Troubleshooting
 ---------------
@@ -68,7 +71,7 @@ Where it is logged depends on the host configuration and OS.
 On Debian it defaults to showing up in `/var/log/syslog`.
 
 
-### Running the script manully
+### Running the script manually
 
 If you want to run the script manually (e.g. for debugging), you need to pass the same environment variables as udev.
 First you need to determine the BUSNUM and DEVNUM of your device.

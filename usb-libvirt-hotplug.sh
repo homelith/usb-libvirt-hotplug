@@ -64,6 +64,8 @@ if [ -z "${ACTION}" ]; then
 fi
 if [ "${ACTION}" == 'add' ]; then
   COMMAND='attach-device'
+elif [ "${ACTION}" == 'bind' ]; then
+  COMMAND='attach-device'
 elif [ "${ACTION}" == 'remove' ]; then
   COMMAND='detach-device'
 else
@@ -98,6 +100,7 @@ DEVNUM=$((10#$DEVNUM))
 # Run the appropriate virsh-command, and ask it to read the
 # update XML from stdin.
 #
+
 echo "Running virsh ${COMMAND} ${DOMAIN} for USB bus=${BUSNUM} device=${DEVNUM}:" >&2
 virsh "${COMMAND}" "${DOMAIN}" /dev/stdin <<END
 <hostdev mode='subsystem' type='usb'>
